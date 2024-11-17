@@ -1,55 +1,35 @@
-import requests
 import streamlit as st
-import datetime
-from textblob import TextBlob
+import requests
 
-# News API Key (use your own key here)
-api_key = 'ae264a6d304344109cc583d9df65fc75'
+# Title of the app
+st.title('Daily News Updates')
 
-# Set up the Streamlit page
-st.title("News Update Hub")
-st.write("Welcome to the News Update Hub! Get the latest news updates here.")
+# A simple text input to get a category from the user
+category = st.text_input("Enter News Category (e.g. business, sports, entertainment):", "business")
 
-# Select the categories
-categories = ['business', 'entertainment', 'health', 'science', 'sports', 'technology']
-category = st.selectbox("Select News Category", categories)
+# Your News API key
+api_key = 'YOUR_API_KEY'  # Use your News API key here
 
-# Function to fetch news from News API
-def get_news(category):
-    url = f'https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}&category={category}'
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an error for bad status codes
-        data = response.json()
-        return data['articles']
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching data: {e}")
-        return []
+# API URL to fetch news based on category
+url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={api_key}'
 
-# Fetch and display news
-if category:
-    articles = get_news(category)
+# Requesting news from the API
+response = requests.get(url)
+
+# If the request is successful
+if response.status_code == 200:
+    data = response.json()
+    articles = data['articles']
+    
+    # Displaying the news articles
     if articles:
         for article in articles:
             st.subheader(article['title'])
             st.write(article['description'])
-            st.write(f"Read more: {article['url']}")
-            st.write(f"Published at: {article['publishedAt']}")
-            
-            # Perform sentiment analysis on the article title
-            blob = TextBlob(article['title'])
-            sentiment = blob.sentiment.polarity
-            if sentiment > 0:
-                st.write("Sentiment: Positive")
-            elif sentiment < 0:
-                st.write("Sentiment: Negative")
-            else:
-                st.write("Sentiment: Neutral")
+            st.write(f"Read more: [Link]({article['url']})")
     else:
-        st.write("No news available for this category.")
+        st.write('No articles found for this category.')
 else:
-    st.write("Please select a category to get the news.")
+    st.write(f"Error: {response.status_code}")
 
-# Display the current date and time
-st.write(f"Current Date and Time: {datetime.datetime.now()}")
 
