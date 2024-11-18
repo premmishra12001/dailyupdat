@@ -42,8 +42,38 @@ articles = [
     }
 ]
 
-# Displaying the manual articles with categories and date/time
-for article in articles:
+# 1. Search Functionality
+search_query = st.text_input("Search Articles")
+
+# Filter articles based on search query
+filtered_articles = [article for article in articles if search_query.lower() in article['title'].lower() or search_query.lower() in article['description'].lower()]
+
+# 2. Category Filter
+categories = ["All", "Space", "Technology", "Politics"]
+category_filter = st.selectbox("Select Category", categories)
+
+# Filter articles based on selected category
+if category_filter != "All":
+    filtered_articles = [article for article in filtered_articles if article['category'] == category_filter]
+
+# 3. Date Filter
+start_date = st.date_input("Start Date", datetime.date(2024, 11, 1))
+end_date = st.date_input("End Date", datetime.date(2024, 11, 30))
+
+# Filter articles based on date range
+filtered_articles = [article for article in filtered_articles if start_date <= article['date'].date() <= end_date]
+
+# 4. Pagination (Show 2 articles per page)
+page_size = 2
+page_number = st.number_input("Page number", min_value=1, max_value=len(filtered_articles) // page_size + 1, step=1)
+
+# Calculate which articles to display
+start_idx = (page_number - 1) * page_size
+end_idx = start_idx + page_size
+articles_to_display = filtered_articles[start_idx:end_idx]
+
+# Display filtered articles
+for article in articles_to_display:
     st.subheader(article["title"])
     st.write(article["description"])
     st.write(f"**Category**: {article['category']}")
@@ -54,8 +84,23 @@ for article in articles:
         st.image(article["image"], caption=article["title"], use_container_width=True)
     
     st.write(f"[Read more]({article['url']})")
+
+    # 5. Comment Section
+    comment = st.text_area(f"Leave a comment on {article['title']}")
+    if comment:
+        st.write(f"**Your comment**: {comment}")
+    
+    # 6. Like/Dislike buttons
+    like = st.button(f"Like {article['title']}")
+    dislike = st.button(f"Dislike {article['title']}")
+    
+    if like:
+        st.write(f"You liked: {article['title']}")
+    if dislike:
+        st.write(f"You disliked: {article['title']}")
+    
     st.write("---")
 
-
-
-
+# If no articles match the filters, display a message
+if not filtered_articles:
+    st.write("No articles found matching your search criteria.")
