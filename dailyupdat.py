@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+import urllib.parse
 
 # Logo Display
 st.image("https://i.imgur.com/XkL05SS.jpeg", width=200)
@@ -42,6 +43,9 @@ articles = [
     }
 ]
 
+# Initialize a dictionary to store likes count for each article
+likes_count = {article['title']: 0 for article in articles}
+
 # 1. Search Functionality
 search_query = st.text_input("Search Articles")
 
@@ -72,33 +76,84 @@ start_idx = (page_number - 1) * page_size
 end_idx = start_idx + page_size
 articles_to_display = filtered_articles[start_idx:end_idx]
 
-# Display filtered articles
+# 5. Dark Mode / Light Mode toggle
+theme = st.radio("Select Theme", ("Light", "Dark"))
+if theme == "Dark":
+    st.markdown("""
+    <style>
+    body {
+        background-color: #2e2e2e;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+    body {
+        background-color: white;
+        color: black;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 6. Subscribe for Daily Updates
+email = st.text_input("Enter your email to subscribe for daily updates:")
+
+if email:
+    st.write(f"Thank you for subscribing with {email}!")
+    # Store the email for actual subscription (not implemented here)
+
+# Display filtered articles with all features
 for article in articles_to_display:
+    # 7. Like Button functionality
+    if st.button(f"Like {article['title']}"):
+        likes_count[article['title']] += 1
+        st.write(f"You liked: {article['title']}")
+
     st.subheader(article["title"])
     st.write(article["description"])
     st.write(f"**Category**: {article['category']}")
     st.write(f"**Published on**: {article['date'].strftime('%B %d, %Y at %I:%M %p')}")
     st.write(f"**Source**: {article['source']}")
-    
     if article.get("image"):
         st.image(article["image"], caption=article["title"], use_container_width=True)
-    
     st.write(f"[Read more]({article['url']})")
 
-    # 5. Comment Section
+    # 8. Comment Section
     comment = st.text_area(f"Leave a comment on {article['title']}")
     if comment:
         st.write(f"**Your comment**: {comment}")
     
-    # 6. Like/Dislike buttons
-    like = st.button(f"Like {article['title']}")
-    dislike = st.button(f"Dislike {article['title']}")
+    # 9. Social Share Links
+    encoded_url = urllib.parse.quote(article['url'])
+    st.markdown(f"""
+    <div style="display: flex; gap: 10px;">
+        <a href="https://www.facebook.com/sharer/sharer.php?u={encoded_url}" target="_blank">Share on Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url={encoded_url}" target="_blank">Share on Twitter</a>
+        <a href="https://api.whatsapp.com/send?text={encoded_url}" target="_blank">Share on WhatsApp</a>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if like:
-        st.write(f"You liked: {article['title']}")
-    if dislike:
-        st.write(f"You disliked: {article['title']}")
+    # 10. Article Rating (Star Rating)
+    stars = st.slider(f"Rate this article: {article['title']}", 1, 5, 3)
+    st.write(f"You rated this article {stars} stars.")
     
+    st.write("---")
+
+# 11. Popular Articles (Based on Likes)
+st.subheader("Popular Articles")
+popular_articles = sorted(articles, key=lambda x: likes_count[x['title']], reverse=True)
+
+for article in popular_articles[:3]:  # Display top 3 most liked articles
+    st.subheader(article["title"])
+    st.write(article["description"])
+    st.write(f"**Category**: {article['category']}")
+    st.write(f"**Published on**: {article['date'].strftime('%B %d, %Y at %I:%M %p')}")
+    st.write(f"**Source**: {article['source']}")
+    if article.get("image"):
+        st.image(article["image"], caption=article["title"], use_container_width=True)
+    st.write(f"[Read more]({article['url']})")
     st.write("---")
 
 # If no articles match the filters, display a message
