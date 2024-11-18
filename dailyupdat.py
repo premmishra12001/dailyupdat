@@ -1,39 +1,85 @@
-import streamlit as st
 import requests
+import streamlit as st
+import datetime
 
-# Title of the app
-st.title('https://i.imgur.com/lwlAREm.jpeg')
+# Logo Display
+st.image("https://i.imgur.com/XkL05SS.jpeg")
 
-# Displaying the logo (Make sure the URL is correct or use a local path)
-logo_url = "https://your-logo-url.com/logo.png"  # Replace with your logo URL or path
-st.image(logo_url, width=200)  # Display logo
+# Background Styling
+st.markdown( 
+    """
+    <style>
+    .stApp {
+        background-image: url("https://i.imgur.com/xAM9uUj.jpeg");
+        background-size: cover;
+        background-position: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# A simple text input to get a category from the user
-category = st.text_input("Enter News Category (e.g. business, sports, entertainment):", "business")
+# Title and Introduction
+st.title("Welcome To Daily Update Hub")
+st.write("""
+Here you will find all kinds of news like health updates, cooking updates, 
+daily lifestyle updates, national and international news, and much more.
+""")
 
-# Your News API key
-api_key = 'ae264a6d304344109cc583d9df65fc75'  # Use your actual News API key here
+# API Configuration
+API_KEY = 'ae264a6d304344109cc583d9df65fc75'
+BASE_URL = "https://newsapi.org/v2/top-headlines"
 
-# API URL to fetch news based on category
-url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={api_key}'
+# Filters
+start_date = st.date_input("Start date", datetime.date(2024, 1, 1))
+end_date = st.date_input("End date", datetime.date(2024, 12, 31))
+categories = ["business", "entertainment", "health", "science", "sports", "technology"]
+selected_category = st.selectbox("Select category", categories)
+query = st.text_input("Search for news")
 
-# Requesting news from the API
+# Build API URL based on filters
+if query:
+    url = f"https://newsapi.org/v2/everything?q={query}&apiKey={API_KEY}&from={start_date}&to={end_date}"
+else:
+    url = f"{BASE_URL}?country=us&apiKey={API_KEY}&category={selected_category}&from={start_date}&to={end_date}"
+
+# Fetch Articles
 response = requests.get(url)
 
-# If the request is successful
 if response.status_code == 200:
-    data = response.json()
-    articles = data['articles']
+    articles = response.json().get("articles", [])
 
-    # Displaying the news articles
-    if articles:
-        for article in articles:
-            st.subheader(article['title'])
-            st.write(article['description'])
-            st.write(f"Read more: [Link]({article['url']})")
-    else:
-        st.write('No articles found for this category.')
+    # Pagination
+    articles_per_page = 5
+    total_pages = (len(articles) // articles_per_page) + 1
+    page_number = st.slider("Select page number", 1, total_pages)
+
+    # Calculate the range of articles to show
+    start_idx = (page_number - 1) * articles_per_page
+    end_idx = start_idx + articles_per_page
+
+    # Display Articles
+    for article in articles[start_idx:end_idx]:
+        st.subheader(article["title"])
+        st.write(article["description"])
+        st.write(f"**Source**: {article['source']['name']}")
+        if article.get("urlToImage"):
+            st.image(article["urlToImage"], caption=article["title"])
+        st.write(f"[Read more]({article['url']})")
+
+        # Social Media Share Buttons
+        st.markdown(
+            f'<a href="https://twitter.com/intent/tweet?text={article["title"]} {article["url"]}" target="_blank">Share on Twitter</a>',
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            f'<a href="https://www.facebook.com/sharer/sharer.php?u={article["url"]}" target="_blank">Share on Facebook</a>',
+            unsafe_allow_html=True
+        )
+        st.write("---")
 else:
-    st.write(f"Error: {response.status_code}")
+    st.error("Failed to fetch news. Please check your API key or try again later.")
+
+
 
 
