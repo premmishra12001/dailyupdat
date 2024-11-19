@@ -4,7 +4,7 @@ import urllib.parse
 
 # Add Google site verification meta tag
 st.markdown("""
-<meta name="google-site-verification" content="google20192e96afe208f0" />
+<meta name="google-site-verification" content="xqn9xjvybwhYcx2jw67nQjtSEffnvenNDkYiHGGGfiY" />
 """, unsafe_allow_html=True)
 
 # Logo Display
