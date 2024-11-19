@@ -2,10 +2,11 @@ import streamlit as st
 import datetime
 import urllib.parse
 
-# Add Google site verification meta tag
-st.markdown("""
-<meta name="google-site-verification" content="xqn9xjvybwhYcx2jw67nQjtSEffnvenNDkYiHGGGfiY" />
-""", unsafe_allow_html=True)
+# Google Site Verification Meta Tag
+st.markdown(
+    '<meta name="google-site-verification" content="3gwUghNA6JEhKtw1U5ACbxpK0dIHKqTyqaLpr115dLg" />',
+    unsafe_allow_html=True
+)
 
 # Logo Display
 st.image("https://i.imgur.com/XkL05SS.jpeg", width=200)
