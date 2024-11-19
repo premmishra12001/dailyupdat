@@ -2,6 +2,26 @@ import streamlit as st
 import datetime
 import urllib.parse
 
+# SEO Meta Tags
+st.markdown("""
+<meta name="description" content="Daily Update Hub - Get the latest news on health, technology, politics, and more.">
+<meta name="keywords" content="Daily Updates, News, Health, Technology, Politics">
+<meta name="author" content="Your Name">
+<meta name="robots" content="index, follow">
+<title>Daily Update Hub</title>
+""", unsafe_allow_html=True)
+
+# Google Analytics Integration
+st.markdown("""
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-XXXXXX-X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-XXXXXX-X');
+</script>
+""", unsafe_allow_html=True)
+
 # Logo Display
 st.image("https://i.imgur.com/XkL05SS.jpeg", width=200)
 
@@ -21,7 +41,7 @@ articles = [
         "source": "BBC NEWS",
         "image": "https://i.imgur.com/5VEbncP.png",
         "category": "SPACE",
-        "date": datetime.datetime(2024, 11, 20, 10, 30)  # Date and Time of article
+        "date": datetime.datetime(2024, 11, 20, 10, 30)
     },
     {
         "title": "टॉप स्टोरी",
@@ -48,65 +68,43 @@ likes_count = {article['title']: 0 for article in articles}
 
 # 1. Search Functionality
 search_query = st.text_input("Search Articles")
-
-# Filter articles based on search query
 filtered_articles = [article for article in articles if search_query.lower() in article['title'].lower() or search_query.lower() in article['description'].lower()]
 
 # 2. Category Filter
 categories = ["All", "Space", "Technology", "Politics"]
 category_filter = st.selectbox("Select Category", categories)
-
-# Filter articles based on selected category
 if category_filter != "All":
     filtered_articles = [article for article in filtered_articles if article['category'] == category_filter]
 
 # 3. Date Filter
 start_date = st.date_input("Start Date", datetime.date(2024, 11, 1))
 end_date = st.date_input("End Date", datetime.date(2024, 11, 30))
-
-# Filter articles based on date range
 filtered_articles = [article for article in filtered_articles if start_date <= article['date'].date() <= end_date]
 
-# 4. Pagination (Show 2 articles per page)
+# 4. Pagination
 page_size = 2
-page_number = st.number_input("Page number", min_value=1, max_value=len(filtered_articles) // page_size + 1, step=1)
-
-# Calculate which articles to display
+page_number = st.number_input("Page number", min_value=1, max_value=max(1, len(filtered_articles) // page_size + 1), step=1)
 start_idx = (page_number - 1) * page_size
 end_idx = start_idx + page_size
 articles_to_display = filtered_articles[start_idx:end_idx]
 
-# 5. Dark Mode / Light Mode toggle
+# 5. Dark Mode / Light Mode
 theme = st.radio("Select Theme", ("Light", "Dark"))
 if theme == "Dark":
     st.markdown("""
     <style>
-    body {
-        background-color: #2e2e2e;
-        color: white;
-    }
+    body { background-color: #2e2e2e; color: white; }
     </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
     <style>
-    body {
-        background-color: white;
-        color: black;
-    }
+    body { background-color: white; color: black; }
     </style>
     """, unsafe_allow_html=True)
 
-# 6. Subscribe for Daily Updates
-email = st.text_input("Enter your email to subscribe for daily updates:")
-
-if email:
-    st.write(f"Thank you for subscribing with {email}!")
-    # Store the email for actual subscription (not implemented here)
-
-# Display filtered articles with all features
+# 6. Display Articles
 for article in articles_to_display:
-    # 7. Like Button functionality
     if st.button(f"Like {article['title']}"):
         likes_count[article['title']] += 1
         st.write(f"You liked: {article['title']}")
@@ -120,42 +118,24 @@ for article in articles_to_display:
         st.image(article["image"], caption=article["title"], use_container_width=True)
     st.write(f"[Read more]({article['url']})")
 
-    # 8. Comment Section
     comment = st.text_area(f"Leave a comment on {article['title']}")
     if comment:
         st.write(f"**Your comment**: {comment}")
-    
-    # 9. Social Share Links
-    encoded_url = urllib.parse.quote(article['url'])
-    st.markdown(f"""
-    <div style="display: flex; gap: 10px;">
-        <a href="https://www.facebook.com/sharer/sharer.php?u={encoded_url}" target="_blank">Share on Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url={encoded_url}" target="_blank">Share on Twitter</a>
-        <a href="https://api.whatsapp.com/send?text={encoded_url}" target="_blank">Share on WhatsApp</a>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # 10. Article Rating (Star Rating)
-    stars = st.slider(f"Rate this article: {article['title']}", 1, 5, 3)
-    st.write(f"You rated this article {stars} stars.")
-    
+
     st.write("---")
 
-# 11. Popular Articles (Based on Likes)
+# 7. Popular Articles
 st.subheader("Popular Articles")
 popular_articles = sorted(articles, key=lambda x: likes_count[x['title']], reverse=True)
-
-for article in popular_articles[:3]:  # Display top 3 most liked articles
+for article in popular_articles[:3]:
     st.subheader(article["title"])
     st.write(article["description"])
     st.write(f"**Category**: {article['category']}")
     st.write(f"**Published on**: {article['date'].strftime('%B %d, %Y at %I:%M %p')}")
-    st.write(f"**Source**: {article['source']}")
     if article.get("image"):
         st.image(article["image"], caption=article["title"], use_container_width=True)
     st.write(f"[Read more]({article['url']})")
     st.write("---")
 
-# If no articles match the filters, display a message
 if not filtered_articles:
     st.write("No articles found matching your search criteria.")
